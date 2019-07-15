@@ -397,16 +397,6 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
 }
 
 - (void)mapView:(GMSMapView*)mapView didChangeCameraPosition:(GMSCameraPosition*)position {
-  if (!_cameraDidInitialSetup) {
-    // We suspected a bug in the iOS Google Maps SDK caused the camera is not properly positioned at
-    // initialization. https://github.com/flutter/flutter/issues/24806
-    // This temporary workaround fix is provided while the actual fix in the Google Maps SDK is
-    // still being investigated.
-    // TODO(cyanglaz): Remove this temporary fix once the Maps SDK issue is resolved.
-    // https://github.com/flutter/flutter/issues/27550
-    _cameraDidInitialSetup = YES;
-    [mapView moveCamera:[GMSCameraUpdate setCamera:_mapView.camera]];
-  }
   if (_trackCameraPosition) {
     [_channel invokeMethod:@"camera#onMove" arguments:@{@"position" : PositionToJson(position)}];
   }
@@ -445,6 +435,16 @@ static double ToDouble(NSNumber* data) { return [FLTGoogleMapJsonConversions toD
 
 - (void)mapView:(GMSMapView*)mapView didLongPressAtCoordinate:(CLLocationCoordinate2D)coordinate {
   [_channel invokeMethod:@"map#onLongPress" arguments:@{@"position" : LocationToJson(coordinate)}];
+}
+
+- (void)mapViewDidStartTileRendering:(GMSMapView *)mapView{
+    //_cameraDidInitialFrameSetup = YES;
+    if (!_cameraDidInitialSetup) {
+        // We suspected a bug in the iOS Google Maps SDK caused the camera is not properly positioned at
+        // initialization. https://github.com/flutter/flutter/issues/24806
+        _cameraDidInitialSetup = YES;
+        [mapView moveCamera:[GMSCameraUpdate setCamera:_mapView.camera]];
+      }
 }
 
 @end
